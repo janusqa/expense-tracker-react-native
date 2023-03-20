@@ -1,5 +1,4 @@
 import { StyleSheet, View, Text, FlatList } from 'react-native/';
-import { TExpense } from '../../data/espenses';
 import { GlobalStyles } from '../../constants/styles';
 
 type Props = {

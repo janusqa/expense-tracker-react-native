@@ -1,14 +1,20 @@
-import { StyleSheet, View, TextInput } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NativeStackParamList } from '../App';
 import { useLayoutEffect } from 'react';
 import IconButton from '../components/ui/IconButon';
 import { GlobalStyles } from '../constants/styles';
-import Button from '../components/ui/Button';
 import { addExpense, deleteExpense, updateExpense } from '../store/expenses';
 import { useAppDispatch } from '../store/hooks/useStore';
-import { TExpense } from '../data/espenses';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
+import { useState } from 'react';
+import Loading from '../components/ui/Loading';
+import produce from 'immer';
+import {
+    postExpense as dbPostExpense,
+    updateExpense as dbUpdateExpense,
+    deleteExpense as dbDeleteExpense,
+} from '../helpers/http';
 
 export type Props = NativeStackScreenProps<
     NativeStackParamList,
@@ -18,11 +24,35 @@ export type Props = NativeStackScreenProps<
 const ManageExpense = ({ route, navigation }: Props) => {
     const expenseId = route.params?.expenseId;
     const isEditing = !!expenseId;
+    const [loading, setLoading] = useState<boolean>(false);
 
     const dispatch = useAppDispatch();
 
-    const deleteExpenseHandler = (expenseId: string) => {
-        dispatch(deleteExpense({ expenseId }));
+    const deleteExpenseHandler = async (expenseId: string) => {
+        try {
+            setLoading((prevState) => {
+                const nextState = produce(prevState, (draft) => {
+                    draft = true;
+                    return draft;
+                });
+                return nextState;
+            });
+            await dbDeleteExpense(expenseId);
+            dispatch(deleteExpense({ expenseId }));
+        } catch (error) {
+            if (error instanceof Error)
+                Alert.alert('Delete Operation failed', error.message);
+            else Alert.alert('Delete Operation failed', 'Something went wrong');
+        } finally {
+            setLoading((prevState) => {
+                const nextState = produce(prevState, (draft) => {
+                    draft = false;
+                    return draft;
+                });
+                return nextState;
+            });
+        }
+
         navigation.goBack();
     };
 
@@ -30,17 +60,72 @@ const ManageExpense = ({ route, navigation }: Props) => {
         navigation.goBack();
     };
 
-    const confirmExpenseHandler = (expense: TExpense) => {
+    const confirmExpenseHandler = async (expense: TExpense) => {
         if (isEditing) {
-            dispatch(updateExpense(expense));
+            try {
+                setLoading((prevState) => {
+                    const nextState = produce(prevState, (draft) => {
+                        draft = true;
+                        return draft;
+                    });
+                    return nextState;
+                });
+                await dbUpdateExpense(expense);
+                dispatch(updateExpense(expense));
+            } catch (error) {
+                if (error instanceof Error)
+                    Alert.alert('Update Operation failed', error.message);
+                else
+                    Alert.alert(
+                        'Update Operation failed',
+                        'Something went wrong'
+                    );
+            } finally {
+                setLoading((prevState) => {
+                    const nextState = produce(prevState, (draft) => {
+                        draft = false;
+                        return draft;
+                    });
+                    return nextState;
+                });
+            }
         } else {
-            dispatch(
-                addExpense({
+            try {
+                setLoading((prevState) => {
+                    const nextState = produce(prevState, (draft) => {
+                        draft = true;
+                        return draft;
+                    });
+                    return nextState;
+                });
+                const result = await dbPostExpense({
                     description: expense.description,
                     date: expense.date,
                     amount: expense.amount,
-                })
-            );
+                });
+
+                dispatch(
+                    addExpense({
+                        id: result.name,
+                        description: expense.description,
+                        date: expense.date,
+                        amount: expense.amount,
+                    })
+                );
+            } catch (error) {
+                if (error instanceof Error)
+                    Alert.alert('Add Operation failed', error.message);
+                else
+                    Alert.alert('Add Operation failed', 'Something went wrong');
+            } finally {
+                setLoading((prevState) => {
+                    const nextState = produce(prevState, (draft) => {
+                        draft = false;
+                        return draft;
+                    });
+                    return nextState;
+                });
+            }
         }
         navigation.goBack();
     };
@@ -55,6 +140,8 @@ const ManageExpense = ({ route, navigation }: Props) => {
         },
         [isEditing]
     );
+
+    if (loading) return <Loading />;
 
     return (
         <View style={styles.container}>

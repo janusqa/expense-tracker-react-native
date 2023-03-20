@@ -1,5 +1,4 @@
 import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { TExpense } from '../../data/espenses';
 import { GlobalStyles } from '../../constants/styles';
 import { getFormattedDate } from '../../helpers/date';
 import { useNavigation } from '@react-navigation/native';

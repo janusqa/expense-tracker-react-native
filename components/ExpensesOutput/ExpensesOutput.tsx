@@ -1,7 +1,6 @@
 import { StyleSheet, View, Text } from 'react-native';
 import ExpensesList from './ExpensesList';
 import ExpensesSummary from './ExpensesSummary';
-import { TExpense } from '../../data/espenses';
 import { GlobalStyles } from '../../constants/styles';
 
 type Props = {

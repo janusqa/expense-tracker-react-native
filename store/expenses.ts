@@ -5,49 +5,57 @@ import {
     PayloadAction,
     CaseReducer,
 } from '@reduxjs/toolkit';
-import { TExpense } from '../data/espenses';
-import 'react-native-get-random-values';
-import { nanoid } from 'nanoid/non-secure';
-import { DUMMY_EXPENSES } from '../data/espenses';
 
 type TSliceState = {
     expenseList: TExpense[];
 };
 
-const getInitialState = (): TSliceState => {
-    return {
-        expenseList: DUMMY_EXPENSES.map((expense) => {
-            const expenseShadow: {
-                id: string;
-                amount: number;
-                description: string;
-                date: string;
-            } = { id: '', amount: 0, description: '', date: '' };
-            Object.entries(expense).forEach(([key, value]) => {
-                if (key !== 'date')
-                    // Record<typeof key, typeof value> OR {[key:string]: typeof value}
-                    // example:  (expenseShadow as Record<typeof key, typeof value>)[key] = value;
-                    // example:  (expenseShadow as {[key:string]: typeof value})[key] = value;
-                    (expenseShadow as Record<typeof key, typeof value>)[key] =
-                        value;
-                else expenseShadow[key] = (value as Date).toISOString();
-            });
-            return expenseShadow;
-        }),
-    };
-};
+// no longer used.  just here for historical purposes
+// and for education
+// const getInitialStateOld = (): TSliceState => {
+//     return {
+//         expenseList: DUMMY_EXPENSES.map((expense) => {
+//             const expenseShadow: {
+//                 id: string;
+//                 amount: number;
+//                 description: string;
+//                 date: string;
+//             } = { id: '', amount: 0, description: '', date: '' };
+//             Object.entries(expense).forEach(([key, value]) => {
+//                 if (key !== 'date')
+//                     // Record<typeof key, typeof value> OR {[key:string]: typeof value}
+//                     // example:  (expenseShadow as Record<typeof key, typeof value>)[key] = value;
+//                     // example:  (expenseShadow as {[key:string]: typeof value})[key] = value;
+//                     (expenseShadow as Record<typeof key, typeof value>)[key] =
+//                         value;
+//                 else expenseShadow[key] = (value as Date).toISOString();
+//             });
+//             return expenseShadow;
+//         }),
+//     };
+// };
 
-const expenseAddedReducer: CaseReducer<
-    TSliceState,
-    PayloadAction<{ description: string; amount: number; date: string }>
-> = (expenses, action) => {
-    const { description, amount, date } = action.payload;
+const getInitialState = (): TSliceState => ({ expenseList: [] });
+
+const expenseAddedReducer: CaseReducer<TSliceState, PayloadAction<TExpense>> = (
+    expenses,
+    action
+) => {
+    const { id, amount, date, description } = action.payload;
     expenses.expenseList.push({
-        id: nanoid(),
+        id,
         description,
         amount,
-        date: date,
+        date,
     });
+};
+
+const expensesAddedReducer: CaseReducer<
+    TSliceState,
+    PayloadAction<TExpense[]>
+> = (expenses, action) => {
+    const expenseList = action.payload;
+    expenses.expenseList = expenseList;
 };
 
 const expenseUpdatedReducer: CaseReducer<
@@ -78,22 +86,21 @@ const slice = createSlice({
     initialState: getInitialState(),
     reducers: {
         expenseAdded: expenseAddedReducer,
+        expensesAdded: expensesAddedReducer,
         expenseUpdated: expenseUpdatedReducer,
         expenseDeleted: expenseDeletedReducer,
     },
 });
 
-const { expenseAdded, expenseUpdated, expenseDeleted } = slice.actions;
+const { expenseAdded, expensesAdded, expenseUpdated, expenseDeleted } =
+    slice.actions;
 
 // reducer
 export default slice.reducer;
 
 // actions
-export const addExpense = (expense: {
-    description: string;
-    amount: number;
-    date: string;
-}) => expenseAdded(expense);
+export const addExpenses = (expenses: TExpense[]) => expensesAdded(expenses);
+export const addExpense = (expense: TExpense) => expenseAdded(expense);
 export const updateExpense = (expense: TExpense) => expenseUpdated(expense);
 export const deleteExpense = (expenseId: { expenseId: string }) =>
     expenseDeleted(expenseId);

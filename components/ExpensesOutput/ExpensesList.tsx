@@ -1,5 +1,4 @@
 import { StyleSheet, FlatList } from 'react-native/';
-import { TExpense } from '../../data/espenses';
 import ExpenseItem from './ExpenseItem';
 
 type Props = {

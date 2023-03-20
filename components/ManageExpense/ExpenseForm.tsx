@@ -3,7 +3,6 @@ import { StyleSheet, View, Text, Alert } from 'react-native';
 import produce from 'immer';
 import Input from './Input';
 import Button from '../ui/Button';
-import { TExpense } from '../../data/espenses';
 import { useAppSelector } from '../../store/hooks/useStore';
 import { getExpenseById } from '../../store/expenses';
 import { z } from 'zod';

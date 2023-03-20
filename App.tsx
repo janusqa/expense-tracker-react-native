@@ -49,9 +49,9 @@ const ExpensesOverviewTabs = () => {
                     <IconButton
                         icon="add"
                         size={24}
-                        color={tintColor}
+                        color={tintColor!}
                         onPress={() => {
-                            navigation.navigate('ManageExpense');
+                            navigation.navigate('ManageExpense', {});
                         }}
                     />
                 ),
